@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "237712194644",
+    "project_id": "pullman-v2",
+    "storage_bucket": "pullman-v2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237712194644:android:1c3af897ac4690edf481c1",
+        "android_client_info": {
+          "package_name": "com.example.pullman_v2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABRGHM4ryU16mn-SMsN8QHDscS0YED_-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
