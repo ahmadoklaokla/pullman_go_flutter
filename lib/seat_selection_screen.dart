@@ -54,7 +54,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   ); // لون جليدي ناعم ومريح للمقاعد المتاحة
 
   List<int> selectedSeats = [];
-  List<int> reservedSeats = [];
+  List<String> reservedSeats = [];
   bool isSeatsLoading = true;
 
   late String currentSelectedDate;
@@ -72,8 +72,23 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       return;
     }
 
-    // 💡 حماية برمجية: فحص التاريخ والتأكد من أنه ليس فارغاً أو نص "null" لتفادي خطأ الـ Dio
     String travelDateParam = widget.selectedDate.trim();
+
+    // 🛠️ معالجة التاريخ وإصلاح الصيغة المائلة (مثال: من 29/5/2026 إلى 2026-05-29) ليتوافق مع لارافيل
+    try {
+      if (travelDateParam.contains('/')) {
+        List<String> parts = travelDateParam.split('/');
+        if (parts.length == 3) {
+          String day = parts[0].padLeft(2, '0');
+          String month = parts[1].padLeft(2, '0');
+          String year = parts[2];
+          travelDateParam = "$year-$month-$day";
+        }
+      }
+    } catch (e) {
+      print("⚠️ فشل في إعادة صياغة التاريخ: $e");
+    }
+
     if (travelDateParam.isEmpty || travelDateParam == "null") {
       DateTime now = DateTime.now();
       travelDateParam =
@@ -85,16 +100,18 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         '${ApiService.baseUrl}/get-reserved-seats',
         queryParameters: {
           'trip_id': widget.tripId,
-          'travel_date': travelDateParam, // 👈 إرسال القيمة المحمية والمفحوصة
+          'travel_date': travelDateParam,
         },
       );
 
       if (response.data['status'] == true) {
         setState(() {
-          //الباك ايند عم تبعث المقاعد نصوص وهون لازم نحولهم من نصوص لارقام صحيحة
-          reservedSeats = (response.data['reserved_seats'] as List? ?? [])
-              .map((seat) => int.tryParse(seat.toString()) ?? 0)
-              .toList();
+          // استقبال السجلات كـ String لضمان عدم حدوث الانهيار عند التحويل
+          reservedSeats = List<String>.from(
+            (response.data['reserved_seats'] ?? []).map(
+              (seat) => seat.toString().trim(),
+            ),
+          );
           isSeatsLoading = false;
         });
       } else {
@@ -602,7 +619,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Widget _buildIndependentSeatItem(int seatNum) {
-    bool isReserved = reservedSeats.contains(seatNum);
+    // 💡 التعديل هنا: تحويل seatNum إلى String للمقارنة
+    bool isReserved = reservedSeats.contains(seatNum.toString());
     bool isSelected = selectedSeats.contains(seatNum);
 
     Color iconColor = isReserved
@@ -651,9 +669,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Widget _buildSeatStats(int totalActualSeats) {
-    int reservedCount = reservedSeats
-        .where((s) => s <= totalActualSeats)
-        .length;
+    // 💡 التعديل هنا: فلترة المقاعد المحجوزة بعد تحويلها لأرقام مؤقتاً
+    int reservedCount = reservedSeats.where((s) {
+      int? num = int.tryParse(s);
+      return num != null && num <= totalActualSeats;
+    }).length;
+
     int availableCount = totalActualSeats - reservedCount;
 
     return Container(
@@ -663,11 +684,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _statBox("متاح", availableCount.toString(), iceAvailableSeat),
-          _statBox(
-            "محجوز",
-            reservedCount.toString(),
-            Colors.grey.shade300,
-          ), // 👈 تم إصلاح تمرير المتغير هنا ليظهر العدد بشكل صحيح
+          _statBox("محجوز", reservedCount.toString(), Colors.grey.shade300),
           _statBox("محدد", selectedSeats.length.toString(), accentIceBlue),
         ],
       ),

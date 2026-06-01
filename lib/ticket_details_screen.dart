@@ -53,7 +53,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
           ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
             onPressed: widget.onBack, // تعديل للوصول للـ Callback من الـ State
           ),
         ),
