@@ -33,13 +33,14 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
   int _pageIndex = 3;
   String userName =
       "جاري التحميل..."; // المتغير المخصص لحفظ الاسم وعرضه في الـ AppBar
+  String? userImage;
   String userToken = "";
 
   @override
   void initState() {
     super.initState();
     _loadUserName(); // تشغيل دالة القراءة فوراً عند فتح الشاشة
-    String userToken = ""; // ضعه هنا في الأعلى خارج الدوال
+
     // تشغيل رادار الإشعارات بمجرد فتح الصفحة الرئيسية
     NotificationService.instance.initializeFCM();
   }
@@ -49,7 +50,10 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       userName = prefs.getString('user_name') ?? "المسافر";
-      userToken = prefs.getString('user_token') ?? "";
+      userToken = prefs.getString('token') ?? "";
+      userImage = prefs.getString(
+        'user_image',
+      ); //  هاد السطر الجديد لقراءة الصورة
     });
   }
 
@@ -121,11 +125,22 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
                               child: CircleAvatar(
                                 radius: 20,
                                 backgroundColor: primaryNavy.withOpacity(0.6),
-                                child: const Icon(
-                                  Icons.person_outline,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
+                                ////  التعديل هون: إذا في صورة بالذاكرة اعرضها، وإلا اعرض الأيقونة العادية
+                                backgroundImage:
+                                    (userImage != null && userImage!.isNotEmpty)
+                                    ? NetworkImage(
+                                        userImage!.startsWith('http')
+                                            ? userImage!
+                                            : "${ApiService.baseAssetUrl}/$userImage",
+                                      )
+                                    : null,
+                                child: (userImage == null || userImage!.isEmpty)
+                                    ? const Icon(
+                                        Icons.person_outline,
+                                        color: Colors.white,
+                                        size: 22,
+                                      )
+                                    : null,
                               ),
                             ),
                             // 🟢 النقطة الخضراء الذكية (بإضاءة وحواف بيضاء)
@@ -314,9 +329,7 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
         //  نمرر الدالة عشان لما ينحفظ الاسم بالبروفايل، تتحدث الرئيسية فوراً
         return ProfileScreen(
           onNameUpdated: (newName) {
-            setState(() {
-              userName = newName;
-            });
+            _loadUserName(); // 👈 السر هون! بس يتعدل البروفايل، منشغل الدالة لتعيد جلب الاسم والصورة الجديدة فوراً
           },
         );
       case 1:

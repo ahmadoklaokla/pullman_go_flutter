@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_service.dart'; // استدعاء ملف الساعي للاتصال باللارافيل والداتابيز
@@ -17,9 +20,22 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final Color primaryGreen = const Color(0xFF162D4A);
+  //
+  //
+  //**************
+  //**************
+  Uint8List? _imageBytes; // متغير لحفظ الصورة كبايتات
+  final ImagePicker _picker = ImagePicker(); // كائن التقاط الصورة
+  String? _imageUrl;
+  //
+  //
+  //**************
+  //**************
 
   bool isEditingName = false;
   bool isEditingPhone = false;
+  //مشان زر الحفظ تبع الصورة بالبروفايل الشخصي
+  bool isImageChanged = false;
   bool isLoading = true; // لعرض دائرة التحميل لحين قراءة الذاكرة
 
   final FocusNode _nameFocusNode = FocusNode();
@@ -47,8 +63,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       nameController.text = prefs.getString('user_name') ?? "لا يوجد اسم";
       emailController.text = prefs.getString('user_email') ?? "لا يوجد بريد";
       phoneController.text = prefs.getString('user_phone') ?? "لا يوجد رقم";
+      //عشان الصورة تبين اول ما افتح الشاشة او لما اعدلها
+      _imageUrl = prefs.getString('user_image');
       isLoading = false;
     });
+  }
+
+  //دالة فتح المعرض والتقاط الصورة
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      final Uint8List bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _imageBytes = bytes;
+        isImageChanged = true; //مشان يظهر زر الحفظ تحت للصورة هي
+      });
+    }
   }
 
   // دالة إظهار صندوق تأكيد تسجيل الخروج وتفريغ التوكن والبيانات بأمان
@@ -127,11 +159,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SnackBar(
             content: Text(
               "عذراً، التوكن غير موجود. أعد تسجيل الدخول",
+
               textAlign: TextAlign.center,
             ),
+
             backgroundColor: Colors.red,
           ),
         );
+
         return;
       }
 
@@ -146,6 +181,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         name: nameController.text,
         phone: phoneController.text,
         token: token,
+        imageBytes: isImageChanged
+            ? _imageBytes
+            : null, //  3. بعثت الصورة للساعي
       );
 
       setState(() {
@@ -157,10 +195,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // إذا تم الحفظ بنجاح في الداتابيز، نقوم بتحديث الذاكرة المحلية للجهاز
         await prefs.setString('user_name', nameController.text);
         await prefs.setString('user_phone', phoneController.text);
+        // هون بيحفظ الرابط تبع الصورة الي رجه من اللارافيل
+        await prefs.setString(
+          'user_image',
+          response.data['user']['passenger_image'] ?? "",
+        );
 
         setState(() {
           isEditingName = false;
           isEditingPhone = false;
+          isImageChanged = false; //  4. رجعناها false بعد ما انحفظت بنجاح
+          _imageUrl = response.data['user']['passenger_image'];
+          _imageBytes = null;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -198,8 +244,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    // شرط ذكي: يظهر الزر فقط إذا كان أحد الحقلين (الاسم أو الهاتف) قيد التعديل حالياً
-    bool shouldShowButton = isEditingName || isEditingPhone;
+    // شرط ذكي: يظهر الزر فقط إذا كان أحد الحقلين (الاسم أو الهاتف او الصورة) قيد التعديل حالياً
+    bool shouldShowButton = isEditingName || isEditingPhone || isImageChanged;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -208,10 +254,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey[200],
-                child: Icon(Icons.person, size: 70, color: primaryGreen),
+              child: GestureDetector(
+                onTap: _pickImage, // عند الضغط يفتح المعرض فوراً
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: _imageBytes != null
+                          ? MemoryImage(_imageBytes!)
+                          : (_imageUrl != null && _imageUrl!.isNotEmpty)
+                          ? NetworkImage(
+                              _imageUrl!.startsWith('http')
+                                  ? _imageUrl!
+                                  : "${ApiService.baseAssetUrl}/$_imageUrl",
+                            ) // اقرأ من الرابط الثاني بالapi لانو مخصص للصور من storageا
+                          : null,
+                      child:
+                          (_imageBytes == null &&
+                              (_imageUrl == null || _imageUrl!.isEmpty))
+                          ? Icon(Icons.person, size: 70, color: primaryGreen)
+                          : null,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: primaryGreen,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 30),

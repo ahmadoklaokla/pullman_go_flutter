@@ -1,3 +1,5 @@
+import 'dart:typed_data'; // مشان هي Uint8List
+
 import 'package:dio/dio.dart';
 
 //هاد الكلاس هو اللي رح يحكي مع اللارافيل بالنيابة عن أغلب الصفحات الصفحات
@@ -9,6 +11,9 @@ class ApiService {
   // إذا بتجرب على جهاز حقيقي، حط IP جهازك الكمبيوتر
   //عنوان ال  APIs
   static const String baseUrl = "http://10.142.155.109:8000/api";
+  //هاد رابط ثاني لعرض الصور من الSTORAGE
+  //لان اللارافيل مابتقرأ صور ومابتعرضها بالمسار الي فيو api
+  static const String baseAssetUrl = "http://10.142.155.109:8000";
 
   final Dio _dio = Dio(
     BaseOptions(
@@ -170,11 +175,24 @@ class ApiService {
     required String name,
     required String phone,
     required String token,
+    Uint8List? imageBytes, //  1.  متغير اختياري لاستقبال الصورة كبايتات
   }) async {
     try {
+      //حولت طريقة تجميع البيانات وارسالها للسيرفر
+      FormData formData = FormData.fromMap({
+        "name": name,
+        "phone": phone,
+        //  3. شرط : إذا المستخدم اختار صورة، ارفقها كملف مع الطلب باسم "image"
+        if (imageBytes != null)
+          "image": MultipartFile.fromBytes(
+            imageBytes,
+            filename: "profile_image.jpg",
+          ),
+      });
+
       return await _dio.post(
         "/update-profile", // الرابط لتحديث البروفايل في اللارافيل
-        data: {"name": name, "phone": phone},
+        data: formData,
         options: Options(
           headers: {
             "Authorization": "Bearer $token", // إرسال التوكن لحماية البيانات
@@ -196,7 +214,7 @@ class ApiService {
   //
   //
   //8
-  // 8. دالة جلب رحلات المستخدم القادمة والسابقة باستخدام التوكن (أضيفيها في أسفل الكلاس)
+  // 8. دالة جلب رحلات المستخدم القادمة والسابقة باستخدام التوكن)
   Future<Response> getUserTrips({required String token}) async {
     try {
       return await _dio.get(
@@ -214,6 +232,11 @@ class ApiService {
     }
   }
 
+  //
+  //
+  //
+  //
+  //9
   //دالة حذف رحلة
   Future<Response> cancelUserBooking({
     required String token,
