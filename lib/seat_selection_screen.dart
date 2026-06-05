@@ -469,7 +469,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 Center(
                   child: Container(
                     width: MediaQuery.of(context).size.width > 450
-                        ? 360
+                        ? 400
                         : double.infinity,
                     padding: const EdgeInsets.only(
                       top: 12,
@@ -509,26 +509,122 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.tag,
-                                    color: Colors.grey.shade400,
-                                    size: 16,
+                              // ─── 💎 كبسولة رقم الباص بعد تعديل الطول والتحكم فيه ───
+                              SizedBox(
+                                width:
+                                    140, // 👈 🛠️ هاد هو الرقم السحري! غير الـ 150 (صغره أو كبره) لتتحكم بطول المستطيل بالظبط
+                                height: 42,
+                                child: Container(
+                                  // صغرنا الـ padding الجانبي لـ 8 عشان الكلام يقعد مرتاح بعد ما قصرنا المستطيل
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 12,
                                   ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    "باص رقم: $activeBusNumber",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade700,
-                                      fontWeight: FontWeight.bold,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color(0xFFFFFFFF),
+                                        const Color(0xFFF8FAFC),
+                                        const Color(
+                                          0xFFF1F5F9,
+                                        ).withOpacity(0.7),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
+                                    borderRadius: BorderRadius.circular(
+                                      14,
+                                    ), // الحواف الكلاسيكية 14
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFFE2E8F0,
+                                      ).withOpacity(0.9),
+                                      width: 1.2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF0F172A,
+                                        ).withOpacity(0.02),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                  child: Row(
+                                    children: [
+                                      // 👈 🛠️ هون التحكم بالرفع فوق وتحت يا قلب!
+                                      Transform.translate(
+                                        offset: const Offset(
+                                          0,
+                                          -2,
+                                        ), // 👈 غير رقم (-3)؛ كل ما زاد بالسالب برتفع لفوق أكتر (مثلاً -4 أو -5)
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: const Color(
+                                              0xFF4CA1AF,
+                                            ).withOpacity(0.09),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.directions_bus_filled_rounded,
+                                            color: Color(0xFF4CA1AF),
+                                            size: 15,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 8,
+                                      ), // مسافة أمان صغيرة ومناسبة للمستطيل القصير
+
+                                      Expanded(
+                                        child: RichText(
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          text: TextSpan(
+                                            style: const TextStyle(
+                                              fontSize: 12.5,
+                                              fontFamily: 'sans-serif',
+                                            ),
+                                            children: [
+                                              const TextSpan(
+                                                text: "باص رقم",
+                                                style: TextStyle(
+                                                  color: Color(0xFF94A3B8),
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                              const TextSpan(
+                                                text: " • ",
+                                                style: TextStyle(
+                                                  color: Color(0xFFCBD5E1),
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: activeBusNumber,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF0F172A),
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
+
+                              // ─── 🧭 السائق (متروك كودك الأصلي كما هو تماماً) ───
                               Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.airline_seat_recline_normal_rounded,
@@ -573,8 +669,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 5,
-                                      mainAxisSpacing: 14,
-                                      crossAxisSpacing: 8,
+                                      mainAxisSpacing: 30,
+                                      //المسافة بين الكرسي والي جمبو
+                                      crossAxisSpacing: 0,
                                       childAspectRatio: 0.85,
                                     ),
                                 itemBuilder: (context, index) {
@@ -701,42 +798,131 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Widget _buildCompactInfoField(String label, String value, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 14, color: Colors.grey.shade500),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+    return Container(
+      // زيادة المساحة الجانبية (horizontal: 20) عشان نمنع أي قطش للنص نهائياً
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        // باليتة بلاتينيوم نيون الفخمة جداً للخلفية
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFCFCFD), Color(0xFFF5F7FA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        // 👈 تم تخفيف الحواف الدائرية لتصبح 14 (شغل كلاسيكي راقي)
+        borderRadius: BorderRadius.circular(14),
+        // إطار مايكرو دقيق جداً للمعة الحواف
+        border: Border.all(
+          color: const Color(0xFFE2E8F0).withOpacity(0.8),
+          width: 1,
+        ),
+        boxShadow: [
+          // طبقات ظلال سينمائية ناعمة ممتدة
+          BoxShadow(
+            color: const Color(0xFF0F172A).withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: const Color(0xFF1E293B).withOpacity(0.04),
+            blurRadius: 30,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      // شلنا الـ ClipRRect عشان نضمن إن النص ما ينقطش نهائياً 🎉
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // نقطة النيون العلوية (أزرق الأكسنت الفخم)
+          Positioned(
+            left: -25,
+            top: -25,
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF4CA1AF).withOpacity(0.09),
+                    const Color(0xFF4CA1AF).withOpacity(0.0),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8F9FA),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200, width: 0.5),
           ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              color: primaryNavy,
+
+          // نقطة النيون السفلية المعاكسة للتوازن البصري الخرافي
+          Positioned(
+            right: -30,
+            bottom: -30,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF2C3E50).withOpacity(0.05),
+                    const Color(0xFF2C3E50).withOpacity(0.0),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+
+          // ─── المحتوى الأساسي الفاخر ───
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // ستايل الكبسولة النصية الفخمة جداً للعنوان
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(
+                        0xFFF1F5F9,
+                      ), // خلفية رمادية مطفية للبادج
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      label.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Color(0xFF64748B), // Slate لون ذكي للخط
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2, // تباعد أحرف بريميوم
+                      ),
+                    ),
+                  ),
+
+                  // الأيقونة تأتي بحجم مثالي ولون الهوية البصرية الصريح
+                  Icon(icon, color: const Color(0xFF4CA1AF), size: 16),
+                ],
+              ),
+
+              const SizedBox(height: 16), // مسافة هندسية مريحة جداً
+              // ─── عرض القيمة الصريح (مساحة عرض كاملة مستحيل تقص) ───
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  color: Color(0xFF0F172A), // لون حبر داكن فاخر جداً
+                  fontWeight: FontWeight.w900,
+                  height: 1.4, // تباعد أسطر يمنع التداخل والقص نهائياً
+                ),
+                maxLines: 2, // بينزل سطر ثاني فوراً لو الشاشة ضيقة وبأخذ راحته
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -769,7 +955,18 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               duration: const Duration(milliseconds: 200),
               width: 54,
               height: 74, // إعطاء مساحة عمودية مريحة لتنفس الطبقات الفاخرة
-              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              //   ضفنا الظل الاحترافي للحاوية الأساسية تبعت الكرسي
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryNavy.withOpacity(isSelected ? 0.25 : 0.12),
+                    blurRadius: isSelected ? 10 : 6,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: _buildRealisticLaravelSeat(
                 seatNum: seatNum,
                 isReserved: isReserved,
@@ -886,9 +1083,10 @@ Widget _buildRealisticLaravelSeat({
       children: [
         // 🪟 [الطبقة 1: مسند الظهر الخلفي]
         Positioned(
-          top: 0,
+          //ارتفاع مسند الظهر
+          top: -7,
           child: Container(
-            width: 44,
+            width: 42,
             height: 52,
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -924,11 +1122,12 @@ Widget _buildRealisticLaravelSeat({
               children: [
                 // خط لمعة الرأس
                 Positioned(
-                  top: 3,
+                  top: 4,
                   left: 10,
                   right: 10,
                   child: Container(
-                    height: 5,
+                    //ارتفاع خط السنادة تبعيت الراس
+                    height: 7,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(3),
@@ -943,7 +1142,7 @@ Widget _buildRealisticLaravelSeat({
         // 🧤 [الطبقة 2: مساند اليدين الجانبية باللون الأسود الملكي]
         Positioned(
           bottom: 8,
-          left: -3,
+          left: 2,
           child: Container(
             width: 5,
             height: 24,
@@ -960,7 +1159,7 @@ Widget _buildRealisticLaravelSeat({
         ),
         Positioned(
           bottom: 8,
-          right: -3,
+          right: 2,
           child: Container(
             width: 5,
             height: 24,
