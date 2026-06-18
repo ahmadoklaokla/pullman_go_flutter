@@ -255,7 +255,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_bounceable:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_bounceable
       sha256: "2e46ad87e5870188a459d1e88f5acbf7bf0217651a6655f9ff079bc0c5976010"
@@ -279,7 +279,7 @@ packages:
     source: hosted
     version: "6.0.0"
   flutter_local_notifications:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_local_notifications
       sha256: "674173fd3c9eda9d4c8528da2ce0ea69f161577495a9cc835a2a4ecd7eadeb35"

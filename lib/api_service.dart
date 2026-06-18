@@ -10,10 +10,10 @@ class ApiService {
   // ملاحظة: إذا بتجرب على محاكي أندرويد (Emulator) استخدم 10.0.2.2 بدل localhost
   // إذا بتجرب على جهاز حقيقي، حط IP جهازك الكمبيوتر
   //عنوان ال  APIs
-  static const String baseUrl = "http://10.142.155.109:8000/api";
+  static const String baseUrl = "http://10.21.159.109:8000/api";
   //هاد رابط ثاني لعرض الصور من الSTORAGE
   //لان اللارافيل مابتقرأ صور ومابتعرضها بالمسار الي فيو api
-  static const String baseAssetUrl = "http://10.142.155.109:8000";
+  static const String baseAssetUrl = "http://10.21.159.109:8000";
 
   final Dio _dio = Dio(
     BaseOptions(
